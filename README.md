@@ -1,8 +1,8 @@
-Questo repository fa riferimento al Homework numero 1.
-Nel repository è possibile trovare il codice python sviluppato.
-Per monitorare l'addestramento dei vari modelli ho usato Weight and Bias.
-Di seguito condivido i link ai progetti su Weight and Bias. 
-Condivido di seguito anche i link dei report. I report sono stai fatti usando la funzionalità di Weights and Bias
+Questo repository si riferisce all'Homework 1. Al suo interno è disponibile il codice Python sviluppato per l'esercizio.
+
+Per monitorare l'addestramento dei vari modelli, è stato utilizzato Weights & Biases (wandb), una piattaforma per il tracciamento degli esperimenti di machine learning.
+
+Di seguito sono riportati i link ai progetti su Weights & Biases, insieme ai relativi report, creati tramite la funzionalità di reporting offerta dalla piattaforma.
 
 Esercizio 1.2
 link progetto
