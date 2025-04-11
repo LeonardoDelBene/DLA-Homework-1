@@ -8,7 +8,6 @@ def train_epoch(model, train_loss, correct_train, total_train, train_loader, opt
 
     for images, labels in train_loader:
         images, labels = images.to(device), labels.to(device)
-        #images = images.view(images.shape[0], -1)
 
         opt.zero_grad()
         outputs = model(images)
@@ -29,7 +28,6 @@ def valid_epoch(model, val_loss, correct_val, total_val, val_loader, criterion, 
   with torch.no_grad():
     for images, labels in val_loader:
       images, labels = images.to(device), labels.to(device)
-      #images = images.view(images.shape[0], -1)
 
       outputs = model(images)
       loss = criterion(outputs, labels)
@@ -46,7 +44,6 @@ def test(model, test_loss, correct_test, total_test, test_loader, criterion, dev
   with torch.no_grad():
     for images, labels in test_loader:
         images, labels = images.to(device), labels.to(device)
-        #images = images.view(images.shape[0], -1)
 
         outputs = model(images)
         loss = criterion(outputs, labels)
@@ -127,7 +124,7 @@ def evaluate_model(model, test_loader, criterion, device):
 
     print(f"🔹 Test Loss: {test_loss:.4f}, Test Accuracy: {test_acc:.2f}%")
 
-    wandb.finish()  # Chiude il logging di WandB
+    wandb.finish()
 
 
 def save_checkpoint(model, optimizer, epoch, best_val_acc, best_val_loss, filename):
