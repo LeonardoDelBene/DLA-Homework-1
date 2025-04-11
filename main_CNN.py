@@ -121,6 +121,6 @@ if __name__ == "__main__":
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
 
     cnn(train_loader, val_loader, test_loader, batch_size)
-    #resnet(train_loader, val_loader, test_loader, batch_size)
+    resnet(train_loader, val_loader, test_loader, batch_size)
 
 
