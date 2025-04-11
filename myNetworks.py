@@ -53,7 +53,7 @@ class CNN_Block(nn.Module):
         for _ in range(num_layers):
             layers.append(nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1))
             layers.append(nn.BatchNorm2d(out_channels))
-            layers.append(nn.ReLU(inplace=True))  # ReLU viene eseguito dopo ogni convoluzione
+            layers.append(nn.ReLU(inplace=True))  
 
         self.block = nn.Sequential(*layers)
 
@@ -197,9 +197,9 @@ class CNN_CAM(nn.Module):
 
     def forward(self, x):
         x = self.forward_features(x)
-        x = self.gap(x)  # Pooling medio adattivo
-        x = torch.flatten(x, 1)  # Flatten per il layer fully connected
-        x = self.fc(x)  # Passaggio attraverso il fully connected layer
+        x = self.gap(x) 
+        x = torch.flatten(x, 1)  
+        x = self.fc(x)  
         return x
 
 class CAM():
@@ -207,31 +207,23 @@ class CAM():
         self.model = model.eval()
         self.type = type
         self.feature = nn.Sequential(*list(self.model.children())[:-2])
-        self.fc_weights = self.model.fc.weight.detach()  # Pesi del layer finale (fc)
+        self.fc_weights = self.model.fc.weight.detach()  
 
     def generate(self, input):
         with torch.no_grad():
-            # Estrai le attivazioni della parte convoluzionale
             if(self.type == "resnet"):
                 features = self.feature(input)
             else:
                 features = self.model.forward_features(input)
-        # Calcola le probabilità di output
+       
         output = self.model(input)
-
-        # Ottieni l'indice della classe prevista
         class_idx = torch.argmax(output).item()
-
-        # Ottieni i pesi associati alla classe prevista
         class_weights = self.fc_weights[class_idx]
 
-        # Ridimensiona le attivazioni (features) per il calcolo della CAM
         features = features.squeeze(0)  # Rimuovi la dimensione del batch
-
         # Calcola la mappa di attivazione (CAM)
-        # Le attivazioni sono di forma [C, H, W] dove C è il numero di canali (es. 512)
-        cam = torch.sum(class_weights[:, None, None] * features, dim=0)  # Somma lungo i canali
-
+        cam = torch.sum(class_weights[:, None, None] * features, dim=0)  
+        
         # Normalizza la CAM
         cam = cam - cam.min()
         cam = cam / (cam.max() + 1e-8)
