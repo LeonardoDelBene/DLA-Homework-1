@@ -23,7 +23,6 @@ import wandb
 
 
 def overlay_cam(image_path, cam, alpha=0.5):
-    # Carica l'immagine e ridimensionala alle dimensioni della CAM
     img = cv2.imread(image_path)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
@@ -32,7 +31,6 @@ def overlay_cam(image_path, cam, alpha=0.5):
     heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
     heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
 
-    # Overlay
     superimposed_img = cv2.addWeighted(heatmap, alpha, img, 1 - alpha, 0)
 
     return img, superimposed_img
@@ -40,7 +38,7 @@ def overlay_cam(image_path, cam, alpha=0.5):
 
 def preprocess_image(image_path,transform):
     image = Image.open(image_path).convert("RGB")
-    image = transform(image).unsqueeze(0)  # Aggiunge la dimensione batch
+    image = transform(image).unsqueeze(0) 
     return image
 
 
@@ -76,7 +74,6 @@ def fine_tuning(model, train_loader, val_loader, num_epochs, learning_rate, devi
     criterion = nn.CrossEntropyLoss()
 
     wandb.login(key="bfa1df1c98b555b96aa3777a18a6e8ca9b082d53")
-    # Inizializza il run su Weights & Biases
     wandb.init(project="Homework-1-CNN-CAM", name=name_run, config={
         "epochs": num_epochs,
         "batch_size": train_loader.batch_size,
@@ -85,12 +82,14 @@ def fine_tuning(model, train_loader, val_loader, num_epochs, learning_rate, devi
         "optimizer": optimizer,
         "loss": criterion
     })
+    
     train_validate(model, num_epochs, train_loader, val_loader, optimizer, criterion, device, filename)
+    
     evaluate_model(model, val_loader, criterion, device)
+    
     return model
 
 
-# Main part
 if __name__ == "__main__":
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -109,8 +108,8 @@ if __name__ == "__main__":
     }
 
     transform = transforms.Compose([
-        transforms.RandomCrop(64),
-        #transforms.Resize((160, 160)),
+        #transforms.RandomCrop(64),
+        transforms.Resize((160, 160)),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
@@ -132,7 +131,7 @@ if __name__ == "__main__":
 
     model_cnn = CNN_CAM(num_blocks, input_channels, hidden_channels, num_class)
     model_cnn.to(device)
-    model_cnn_save_path = "--"  # usa "cnn_imageNette.pth" per ImageNette chackponit a "cnn_imageNette_checkpoint.pth"
+    model_cnn_save_path = "--"  # usa "cnn_imageNette.pth" per ImageNette checkponit a "cnn_imageNette_checkpoint.pth"
     if os.path.exists(model_cnn_save_path):
         print(f"Caricamento del modello salvato da: {model_cnn_save_path}")
         model_cnn.load_state_dict(torch.load(model_cnn_save_path))
@@ -154,7 +153,6 @@ if __name__ == "__main__":
         model_resnet.load_state_dict(torch.load(model_resnet_save_path))
     else:
         print(f"Nessun modello salvato trovato. Inizierò il fine-tuning da zero.")
-        # Esegui il fine-tuning solo sull'ultimo layer FC
         for param in model_resnet.parameters():
             param.requires_grad = False
         for param in model_resnet.fc.parameters():
@@ -167,40 +165,32 @@ if __name__ == "__main__":
     classes = [c for c in os.listdir(imagenette_val_path) if
                not c.startswith('.') and os.path.isdir(os.path.join(imagenette_val_path, c))]
 
-    # Configura il layout per il grafico
-    fig, axes = plt.subplots(3, 10, figsize=(20, 8))  # Crea una griglia 2x10 per visualizzare 10 classi
+    fig, axes = plt.subplots(3, 10, figsize=(20, 8))  
 
-    # Mantieni il ciclo originale che carica immagini da ImageNette
     for idx, class_name in enumerate(classes):
         class_path = os.path.join(imagenette_val_path, class_name)
 
-        # Seleziona un'immagine casuale dalla classe
         random_image = random.choice(os.listdir(class_path))
         image_path = os.path.join(class_path, random_image)
 
-        # Recupera la label umana (se presente)
         human_label = wnid_to_label.get(class_name, class_name)
 
-        # Pre-processa l'immagine
         input_tensor = preprocess_image(image_path, transform)
         input_tensor = input_tensor.to(device)
 
-        # Crea la CAM e visualizza l'overlay per il modello ResNet-18
         cam_generator_resnet = CAM(model_resnet, type="resnet")
         cam_resnet = cam_generator_resnet.generate(input_tensor)
         img, superimposed_img_resnet = overlay_cam(image_path, cam_resnet)
 
-        # Crea la CAM e visualizza l'overlay per il modello CNN
         cam_generator_cnn = CAM(model_cnn, type="cnn")
         cam_cnn = cam_generator_cnn.generate(input_tensor)
         _, superimposed_img_cnn = overlay_cam(image_path, cam_cnn)
 
-        # Mostra le immagini originali e con CAM sovrapposta in una griglia
         axes[0, idx].imshow(img)
         axes[0, idx].set_title(f"Original ({human_label})")
         axes[0, idx].axis("off")
 
-        axes[1, idx].imshow(superimposed_img_resnet)  # Immagine con CAM sovrapposto ResNet
+        axes[1, idx].imshow(superimposed_img_resnet)  
         axes[1, idx].set_title(f"ResNet CAM ({human_label})")
         axes[1, idx].axis("off")
 
